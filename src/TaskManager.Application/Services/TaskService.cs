@@ -1,9 +1,10 @@
+using TaskManager.Application.Interfaces;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Interfaces;
 
 namespace TaskManager.Application.Services
 {
-    public class TaskService
+    public class TaskService : ITaskService
     {
         private readonly ITaskRepository _taskRepository;
 

@@ -17,6 +17,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManager.Tests", "tests\TaskManager.Tests\TaskManager.Tests.csproj", "{62F63967-290A-43E7-98B2-9DDEFF4B636C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		CreateDatabase.sql = CreateDatabase.sql
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,5 +102,8 @@ Global
 		{FA231A28-E7EB-4315-A7C7-348C918035F0} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{BBB410C5-A932-49AC-98CA-CCC5E6D8334D} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{62F63967-290A-43E7-98B2-9DDEFF4B636C} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8E8D6E4B-C272-49E9-9DD0-B863412251AA}
 	EndGlobalSection
 EndGlobal

@@ -1,9 +1,10 @@
+using TaskManager.Application.Interfaces;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Interfaces;
 
 namespace TaskManager.Application.Services
 {
-    public class UserService
+    public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
 
@@ -23,6 +24,11 @@ namespace TaskManager.Application.Services
                 throw new ArgumentException("Email is required");
 
             await _userRepository.AddAsync(user);
+        }
+
+        public async Task<User?> GetUserByIdAsync(Guid id)
+        {
+            return await _userRepository.GetByIdAsync(id);
         }
 
         public async Task<User?> LoginAsync(string email, string password)

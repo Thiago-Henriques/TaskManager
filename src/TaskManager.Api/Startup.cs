@@ -64,7 +64,6 @@ namespace TaskManager.Api
 
             #region Common Middleware
             app.UseHttpsRedirection();
-            app.UseAuthorization();
             app.MapControllers();
             #endregion
         }

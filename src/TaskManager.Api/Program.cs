@@ -28,7 +28,29 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSettings.Issuer,
         ValidAudience = jwtSettings.Audience,
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+            Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+        ClockSkew = TimeSpan.Zero 
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError(context.Exception, "JWT Authentication failed: {Message}", context.Exception.Message);
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("JWT Token validated successfully for user: {User}", context.Principal?.Identity?.Name);
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning("JWT Challenge triggered. Error: {Error}, Description: {ErrorDescription}", context.Error, context.ErrorDescription);
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -48,19 +70,14 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "API for managing tasks"
     });
-
-    // Add JWT Authentication support in Swagger
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = @"JWT Authorization header using the Bearer scheme.
-                      Enter 'Bearer' [space] and then your token in the text input below.
-                      Example: 'Bearer 12345abcdef'",
+        Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer 12345abcdef'",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -70,12 +87,9 @@ builder.Services.AddSwaggerGen(options =>
                 {
                     Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
-                },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header
+                }
             },
-            new List<string>()
+            Array.Empty<string>()
         }
     });
 });
@@ -105,6 +119,10 @@ app.Use(async (context, next) =>
 });
 
 // Configure the HTTP request pipeline.
+app.UseHttpsRedirection();
+app.UseAuthentication(); // MIDDLEWARE DE AUTENTICAÇÃO ANTES DO SWAGGER
+app.UseAuthorization();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -114,12 +132,6 @@ if (app.Environment.IsDevelopment())
         c.DocumentTitle = "TaskManager API Documentation";
     });
 }
-
-app.UseHttpsRedirection();
-
-// Add authentication & authorization middleware
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapControllers();
 

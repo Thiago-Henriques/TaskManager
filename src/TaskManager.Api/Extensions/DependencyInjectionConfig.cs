@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using TaskManager.Application.Interfaces;
+﻿using TaskManager.Application.Interfaces;
 using TaskManager.Application.Services;
 using TaskManager.Domain.Interfaces;
 using TaskManager.Infrastructure.Repositories;
@@ -20,6 +18,9 @@ namespace TaskManager.Infrastructure.Configuration
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<IUserService, UserService>();
             #endregion
+
+
+            services.AddScoped<IJwtService, JwtService>();
 
             #region Logging
             services.AddLogging(builder =>

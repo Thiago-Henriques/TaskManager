@@ -1,12 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using TaskManager.Domain.Entities;
 using TaskManager.Application.Interfaces;
+using TaskManager.Domain.Entities;
 
 namespace TaskManager.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class TasksController : ControllerBase
     {
         private readonly ITaskService _taskService;

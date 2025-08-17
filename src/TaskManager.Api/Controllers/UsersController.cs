@@ -1,6 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TaskManager.Domain.Entities;
 using TaskManager.Application.Interfaces;
+using TaskManager.Domain.Entities;
 
 namespace TaskManager.Api.Controllers
 {
@@ -9,18 +10,21 @@ namespace TaskManager.Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IJwtService _jwtService;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, IJwtService jwtService)
         {
             _userService = userService;
+            _jwtService = jwtService;
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<User>> GetById(Guid id)
         {
             try
             {
-                var user = await _userService.GetUserByEmailAsync(id.ToString()); // Se quiser buscar por ID, crie método adequado
+                var user = await _userService.GetUserByIdAsync(id);
                 if (user == null) return NotFound();
                 return Ok(user);
             }
@@ -31,6 +35,7 @@ namespace TaskManager.Api.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<ActionResult<User>> Register(User user)
         {
             try
@@ -49,15 +54,23 @@ namespace TaskManager.Api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<User>> Login(string email, string password)
+        [AllowAnonymous]
+        public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
         {
             try
             {
-                var user = await _userService.LoginAsync(email, password);
+                var user = await _userService.LoginAsync(request.Email, request.Password);
                 if (user == null)
                     return Unauthorized("Invalid credentials");
 
-                return Ok(user);
+                var token = _jwtService.GenerateToken(user);
+
+                return Ok(new AuthResponse
+                {
+                    Token = token,
+                    UserId = user.Id,
+                    Email = user.Email
+                });
             }
             catch (Exception ex)
             {

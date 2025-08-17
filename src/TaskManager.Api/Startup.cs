@@ -45,19 +45,6 @@ namespace TaskManager.Api
             #region Infrastructure & Application DI
             services.AddInfrastructureDependencies(); 
             #endregion
-
-            #region Swagger
-            services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "TaskManager API",
-                    Version = "v1",
-                    Description = "API for managing tasks and users"
-                });
-            });
-            #endregion
         }
 
         // Configure Middleware Pipeline

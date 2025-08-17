@@ -26,7 +26,6 @@ namespace TaskManager.Infrastructure.Configuration
             {
                 builder.AddConsole();
                 builder.AddDebug();
-                builder.AddEventSourceLogger();
                 builder.SetMinimumLevel(LogLevel.Debug);
             });
             #endregion

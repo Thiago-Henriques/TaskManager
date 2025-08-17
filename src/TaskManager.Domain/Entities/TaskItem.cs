@@ -1,3 +1,5 @@
+using TaskManager.Domain.Enums;
+
 namespace TaskManager.Domain.Entities
 {
     public class TaskItem
@@ -6,7 +8,7 @@ namespace TaskManager.Domain.Entities
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public DateTime DueDate { get; set; }
-        public Enums.TaskItemStatus Status { get; set; }
+        public TaskItemStatus Status { get; set; }
         public Guid UserId { get; set; }
     }
 }

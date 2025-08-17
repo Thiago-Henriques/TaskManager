@@ -41,7 +41,7 @@ namespace TaskManager.Infrastructure.Repositories
                         Title = reader.GetString(reader.GetOrdinal("Title")),
                         Description = reader.GetString(reader.GetOrdinal("Description")),
                         DueDate = reader.GetDateTime(reader.GetOrdinal("DueDate")),
-                        Status = (TaskItemStatus)reader.GetInt32(reader.GetOrdinal("Status")),
+                        Status = (TaskItemStatus)reader.GetInt32(reader.GetOrdinal("StatusId")),
                         UserId = reader.GetGuid(reader.GetOrdinal("UserId"))
                     });
                 }
@@ -83,7 +83,7 @@ namespace TaskManager.Infrastructure.Repositories
                         Title = reader.GetString(reader.GetOrdinal("Title")),
                         Description = reader.GetString(reader.GetOrdinal("Description")),
                         DueDate = reader.GetDateTime(reader.GetOrdinal("DueDate")),
-                        Status = (TaskItemStatus)reader.GetInt32(reader.GetOrdinal("Status")),
+                        Status = (TaskItemStatus)reader.GetInt32(reader.GetOrdinal("StatusId")),
                         UserId = reader.GetGuid(reader.GetOrdinal("UserId"))
                     };
                     _logger.LogInformation("Successfully retrieved task with ID: {TaskId}", id);
@@ -113,14 +113,14 @@ namespace TaskManager.Infrastructure.Repositories
             {
                 using var connection = new SqlConnection(_connectionString);
                 using var command = new SqlCommand(
-                    "INSERT INTO Tasks (Id, Title, Description, DueDate, Status, UserId) " +
+                    "INSERT INTO Tasks (Id, Title, Description, DueDate, StatusId, UserId) " +
                     "VALUES (@Id, @Title, @Description, @DueDate, @Status, @UserId)", connection);
 
                 command.Parameters.AddWithValue("@Id", task.Id);
                 command.Parameters.AddWithValue("@Title", task.Title);
                 command.Parameters.AddWithValue("@Description", task.Description);
                 command.Parameters.AddWithValue("@DueDate", task.DueDate);
-                command.Parameters.AddWithValue("@Status", (int)task.Status);
+                command.Parameters.AddWithValue("@StatusId", (int)task.Status);
                 command.Parameters.AddWithValue("@UserId", task.UserId);
 
                 await connection.OpenAsync();
@@ -150,14 +150,14 @@ namespace TaskManager.Infrastructure.Repositories
                 using var connection = new SqlConnection(_connectionString);
                 using var command = new SqlCommand(
                     "UPDATE Tasks SET Title = @Title, Description = @Description, " +
-                    "DueDate = @DueDate, Status = @Status, UserId = @UserId " +
+                    "DueDate = @DueDate, StatusId = @Status, UserId = @UserId " +
                     "WHERE Id = @Id", connection);
 
                 command.Parameters.AddWithValue("@Id", task.Id);
                 command.Parameters.AddWithValue("@Title", task.Title);
                 command.Parameters.AddWithValue("@Description", task.Description);
                 command.Parameters.AddWithValue("@DueDate", task.DueDate);
-                command.Parameters.AddWithValue("@Status", (int)task.Status);
+                command.Parameters.AddWithValue("@StatusId", (int)task.Status);
                 command.Parameters.AddWithValue("@UserId", task.UserId);
 
                 await connection.OpenAsync();

@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Interfaces;
 
@@ -8,66 +9,131 @@ namespace TaskManager.Infrastructure.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly string _connectionString;
+        private readonly ILogger<UserRepository> _logger;
 
-        public UserRepository(IConfiguration configuration)
+        public UserRepository(IConfiguration configuration, ILogger<UserRepository> logger)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            _connectionString = configuration.GetConnectionString("DefaultConnection") ?? 
+                throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            _logger = logger;
         }
 
         public async Task<User?> GetByIdAsync(Guid id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            using var command = new SqlCommand("SELECT * FROM Users WHERE Id=@Id", connection);
-            command.Parameters.AddWithValue("@Id", id);
-            await connection.OpenAsync();
-            using var reader = await command.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            _logger.LogDebug("Executing GetByIdAsync query for user ID: {UserId}", id);
+            
+            try
             {
-                return new User
+                using var connection = new SqlConnection(_connectionString);
+                using var command = new SqlCommand("SELECT * FROM Users WHERE Id=@Id", connection);
+                command.Parameters.AddWithValue("@Id", id);
+                
+                await connection.OpenAsync();
+                _logger.LogDebug("Database connection opened successfully");
+                
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
                 {
-                    Id = reader.GetGuid(reader.GetOrdinal("Id")),
-                    Name = reader.GetString(reader.GetOrdinal("Name")),
-                    Email = reader.GetString(reader.GetOrdinal("Email")),
-                    PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash"))
-                };
+                    var user = new User
+                    {
+                        Id = reader.GetGuid(reader.GetOrdinal("Id")),
+                        Name = reader.GetString(reader.GetOrdinal("Name")),
+                        Email = reader.GetString(reader.GetOrdinal("Email")),
+                        PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash"))
+                    };
+                    _logger.LogInformation("Successfully retrieved user with ID: {UserId}", id);
+                    return user;
+                }
+                
+                _logger.LogInformation("No user found with ID: {UserId}", id);
+                return null;
             }
-            return null;
+            catch (SqlException ex)
+            {
+                _logger.LogError(ex, "Database error occurred while retrieving user with ID: {UserId}", id);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error occurred while retrieving user with ID: {UserId}", id);
+                throw;
+            }
         }
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            using var connection = new SqlConnection(_connectionString);
-            using var command = new SqlCommand("SELECT * FROM Users WHERE Email=@Email", connection);
-            command.Parameters.AddWithValue("@Email", email);
-            await connection.OpenAsync();
-            using var reader = await command.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            _logger.LogDebug("Executing GetByEmailAsync query for email: {Email}", email);
+            
+            try
             {
-                return new User
+                using var connection = new SqlConnection(_connectionString);
+                using var command = new SqlCommand("SELECT * FROM Users WHERE Email=@Email", connection);
+                command.Parameters.AddWithValue("@Email", email);
+                
+                await connection.OpenAsync();
+                _logger.LogDebug("Database connection opened successfully");
+                
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
                 {
-                    Id = reader.GetGuid(reader.GetOrdinal("Id")),
-                    Name = reader.GetString(reader.GetOrdinal("Name")),
-                    Email = reader.GetString(reader.GetOrdinal("Email")),
-                    PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash"))
-                };
+                    var user = new User
+                    {
+                        Id = reader.GetGuid(reader.GetOrdinal("Id")),
+                        Name = reader.GetString(reader.GetOrdinal("Name")),
+                        Email = reader.GetString(reader.GetOrdinal("Email")),
+                        PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash"))
+                    };
+                    _logger.LogInformation("Successfully retrieved user with email: {Email}", email);
+                    return user;
+                }
+                
+                _logger.LogInformation("No user found with email: {Email}", email);
+                return null;
             }
-            return null;
+            catch (SqlException ex)
+            {
+                _logger.LogError(ex, "Database error occurred while retrieving user with email: {Email}", email);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error occurred while retrieving user with email: {Email}", email);
+                throw;
+            }
         }
 
         public async Task AddAsync(User user)
         {
-            using var connection = new SqlConnection(_connectionString);
-            using var command = new SqlCommand(
-                "INSERT INTO Users (Id, Name, Email, PasswordHash) VALUES (@Id, @Name, @Email, @PasswordHash)",
-                connection);
+            _logger.LogDebug("Executing AddAsync query for user with email: {Email}", user.Email);
+            
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                using var command = new SqlCommand(
+                    "INSERT INTO Users (Id, Name, Email, PasswordHash) VALUES (@Id, @Name, @Email, @PasswordHash)",
+                    connection);
 
-            command.Parameters.AddWithValue("@Id", user.Id);
-            command.Parameters.AddWithValue("@Name", user.Name);
-            command.Parameters.AddWithValue("@Email", user.Email);
-            command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
+                command.Parameters.AddWithValue("@Id", user.Id);
+                command.Parameters.AddWithValue("@Name", user.Name);
+                command.Parameters.AddWithValue("@Email", user.Email);
+                command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
 
-            await connection.OpenAsync();
-            await command.ExecuteNonQueryAsync();
+                await connection.OpenAsync();
+                _logger.LogDebug("Database connection opened successfully");
+                
+                await command.ExecuteNonQueryAsync();
+                _logger.LogInformation("Successfully added user with ID: {UserId} and email: {Email}", user.Id, user.Email);
+            }
+            catch (SqlException ex)
+            {
+                _logger.LogError(ex, "Database error occurred while adding user with email: {Email}", user.Email);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error occurred while adding user with email: {Email}", user.Email);
+                throw;
+            }
         }
     }
 }

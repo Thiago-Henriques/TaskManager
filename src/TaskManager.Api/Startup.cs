@@ -1,5 +1,7 @@
 ﻿using Microsoft.OpenApi.Models;
 using TaskManager.Infrastructure.Configuration;
+using Serilog;
+using Serilog.Events;
 
 namespace TaskManager.Api
 {
@@ -9,11 +11,33 @@ namespace TaskManager.Api
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            // Configure Serilog
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.File(
+                    path: "logs/taskmanager-.log",
+                    rollingInterval: RollingInterval.Day,
+                    fileSizeLimitBytes: 10 * 1024 * 1024,
+                    retainedFileCountLimit: 10,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .CreateLogger();
         }
 
         // Configure Dependency Injection
         public void ConfigureServices(IServiceCollection services)
         {
+            #region Logging
+            services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.ClearProviders();
+                loggingBuilder.AddSerilog(dispose: true);
+            });
+            #endregion
+
             #region Controllers
             services.AddControllers();
             #endregion

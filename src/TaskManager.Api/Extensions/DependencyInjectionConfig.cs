@@ -19,8 +19,9 @@ namespace TaskManager.Infrastructure.Configuration
             services.AddScoped<IUserService, UserService>();
             #endregion
 
-
+            #region Authorization Services
             services.AddScoped<IJwtService, JwtService>();
+            #endregion
 
             #region Logging
             services.AddLogging(builder =>

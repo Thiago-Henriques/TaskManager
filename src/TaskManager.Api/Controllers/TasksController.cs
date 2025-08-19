@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TaskManager.Application.DTOs;
 using TaskManager.Application.Interfaces;
 using TaskManager.Domain.Entities;
 
@@ -80,18 +81,20 @@ namespace TaskManager.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, TaskItem task)
+        public async Task<IActionResult> Update(Guid id, [FromBody] TaskUpdateDTO updateDto)
         {
             try
             {
-                if (id != task.Id)
+                var existingTask = await _taskService.GetTaskByIdAsync(id);
+                if (existingTask == null)
                 {
-                    _logger.LogWarning("ID mismatch. Path ID: {PathId}, Task ID: {TaskId}", id, task.Id);
-                    return BadRequest("ID mismatch");
+                    _logger.LogWarning("Task with ID {TaskId} not found for update", id);
+                    return NotFound();
                 }
 
-                _logger.LogInformation("Updating task with ID: {TaskId}", id);
-                await _taskService.UpdateTaskAsync(task);
+                UpdateTaskProperties(updateDto, existingTask);
+
+                await _taskService.UpdateTaskAsync(existingTask);
                 _logger.LogInformation("Successfully updated task with ID: {TaskId}", id);
                 return NoContent();
             }
@@ -100,6 +103,15 @@ namespace TaskManager.Api.Controllers
                 _logger.LogError(ex, "Error occurred while updating task with ID {TaskId}", id);
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
+        }
+
+        private static void UpdateTaskProperties(TaskUpdateDTO updateDto, TaskItem existingTask)
+        {
+            existingTask.Title = updateDto.Title;
+            existingTask.Description = updateDto.Description;
+            existingTask.DueDate = updateDto.DueDate;
+            existingTask.Status = updateDto.Status;
+            existingTask.UserId = updateDto.UserId;
         }
 
         [HttpDelete("{id}")]

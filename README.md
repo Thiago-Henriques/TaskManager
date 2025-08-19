@@ -35,10 +35,6 @@ The solution is organized using Clean Architecture, separating concerns into dis
 
 1. **Install .NET 9 SDK**
 2. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/TaskManager.git
-   cd TaskManager
-   ```
 3. **Configure the database connection**
    - Update the connection string in `src/TaskManager.Api/appsettings.json` as needed.
 4. **Start the API**
